@@ -9,7 +9,7 @@
     "postinstall": "patch-package"
   },
   "dependencies": {
-    "blume": "^1.0.3"
+    "blume": "1.0.4"
   },
   "devDependencies": {
     "patch-package": "^8.0.1"
