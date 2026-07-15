@@ -7,6 +7,10 @@ export default defineConfig({
   content: {
     root: "docs",
   },
+  seo: {
+    x: { handle: "@hk_it7", creator: "@hk_it7" },
+    og: { enabled: true }, // or false to opt out even with a site set
+  },
   deployment: {
     site: "https://h-kono-it.github.io/legal-check-helper",
     base: "/legal-check-helper",
