@@ -1,0 +1,49 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <p class="site-footer__heading">免責事項</p>
+    <ul class="site-footer__list">
+      <li>本サイトは情報提供のみを目的としており、法務的な判断を代替するものではありません。</li>
+      <li>法律の解釈には揺らぎがあります。掲載内容が唯一の解釈とは限りません。</li>
+      <li>実際の判断にあたっては、必ず弁護士等の専門家に相談し、その指示に従ってください。</li>
+      <li>本サイトの利用により生じたいかなる損害についても、運営者は一切の責任を負いません。</li>
+    </ul>
+    <p class="site-footer__links">
+      <a href="/disclaimer">免責事項の全文</a>
+      <span aria-hidden="true">・</span>
+      <span>&copy; {year} 法務案件チェックポイント</span>
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 3rem;
+    padding: 1.5rem 1rem 2rem;
+    border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+    font-size: 0.8rem;
+    line-height: 1.7;
+    opacity: 0.75;
+  }
+  .site-footer__inner {
+    max-width: 48rem;
+    margin: 0 auto;
+  }
+  .site-footer__heading {
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+  }
+  .site-footer__list {
+    margin: 0 0 0.75rem;
+    padding-left: 1.2em;
+  }
+  .site-footer__links {
+    margin: 0;
+  }
+  .site-footer__links a {
+    text-decoration: underline;
+  }
+</style>

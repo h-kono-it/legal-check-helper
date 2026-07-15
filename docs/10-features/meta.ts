@@ -1,0 +1,31 @@
+import { defineMeta } from "blume";
+
+export default defineMeta({
+  title: "機能から引く",
+  icon: "zap",
+  pages: [
+    "index",
+    "point-issuance",
+    "prepaid-emoney",
+    "third-party-points",
+    "p2p-transfer",
+    "point-refund",
+    "dm-chat",
+    "admin-dm-viewing",
+    "analytics-sdk",
+    "account-deletion",
+    "external-data-sync",
+    "ses-instruction",
+    "freelance-order",
+    "assets-oss",
+    "webfont",
+    "ugc-promotion",
+    "ec-purchase-flow",
+    "subscription",
+    "cancellation-ui",
+    "scraping",
+    "balance-db",
+    "mixed-payment-refund",
+    "outsourcing-payment",
+  ],
+});

@@ -1,0 +1,35 @@
+---
+title: フェーズ2：設計時（DB・API・UI設計）
+description: 実装前の段階で、設計レベルの法的・経理的要件を確認するチェックリスト
+sidebar:
+  label: 2. 設計
+---
+
+実装前の段階で、設計レベルでの法的・経理的な要件を確認します。
+
+## DB設計
+
+- [ ] ポイント・電子マネーの残高変化をイベント履歴テーブルで記録する設計になっている
+- [ ] `event_type`の分類が経理処理に対応している（`charge` / `earn` / `use` / `refund` / `expire`）
+- [ ] 履歴テーブルはAppend Only（追記専用）で運用する設計になっている（UPDATE・DELETE禁止）
+- [ ] `balance_after`（事後残高）カラムを持ち、整合性チェックバッチを設計している
+- [ ] 複合払いの返金処理に冪等性キー（`idempotency_key`）を設計している
+- [ ] `idempotency_key`カラムにUNIQUE制約を設け、バグや通信リトライによる二重計上をDB側でも防いでいる
+- [ ] 退会時に消すべきデータ（識別子）と残すべきデータ（法律上の保存義務がある取引記録）を別テーブルまたは別ストレージで設計している
+- [ ] 外注費テーブルに受領日（`received_at`）と支払い日（`paid_at`）を設計している
+- [ ] 未使用ポイント残高の総量を集計できるクエリまたはサマリーテーブルを設計している（供託義務の判定用）
+
+関連：[残高DB設計](/features/balance-db)・[複合払いの返金処理](/features/mixed-payment-refund)・[退会機能](/features/account-deletion)・[外注費の支払い管理](/features/outsourcing-payment)
+
+## UI設計
+
+- [ ] 通販・EC購入フローの最終確認画面で必須項目を確認した（商品内容・価格・支払い条件・解約方法）
+- [ ] 定期購入の場合、継続金額・解約条件を最終確認画面へ明示する設計になっている
+- [ ] 解約フローのUI設計を確認した（解約ボタンの視認性・誘導ステップの数）
+- [ ] 管理者によるDM閲覧機能のアクセス制御を設計した（閲覧は原則不可・例外手続きの明示）
+
+関連：[EC購入フロー](/features/ec-purchase-flow)・[定期購入・サブスク](/features/subscription)・[解約フローのUI設計](/features/cancellation-ui)・[管理者のDM閲覧](/features/admin-dm-viewing)
+
+次のフェーズ → [フェーズ3：実装時](/checklist/phase-3-implementation)
+
+{/* 実務メモ: 書籍にない独自の追加情報はこの下に追記していく */}

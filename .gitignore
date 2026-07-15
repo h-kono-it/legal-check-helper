@@ -1,0 +1,6 @@
+.blume/
+dist/
+.blume-verify/
+.claude/*.local.*
+
+node_modules/
