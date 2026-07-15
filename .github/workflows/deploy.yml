@@ -1,42 +1,49 @@
-name: Deploy to GitHub Pages
+name: Deploy Blume to GitHub Pages
 
 on:
-  # `main`ブランチにプッシュするたびにワークフローをトリガーします。
-  # 別のブランチを使用している場合は、`main`をそのブランチ名に置き換えてください。
   push:
-    branches: [ main ]
-  # GitHub上のActionsタブからこのワークフローを手動で実行できます。
+    branches: ["main"] # デフォルトブランチ名に合わせて調整してください（main または master など）
+
+  # 手動実行も可能にする場合
   workflow_dispatch:
 
-# このジョブがリポジトリをクローンし、ページデプロイメントを作成することを許可します。
+# GitHub Pagesへのデプロイに必要な権限を設定
 permissions:
   contents: read
   pages: write
   id-token: write
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout your repository using git
-        uses: actions/checkout@v6
-      - name: Install, build, and upload your site
-        uses: withastro/action@v6
-        # with:
-          # path: . # リポジトリ内のAstroプロジェクトのルート位置です。（オプション）
-          # node-version: 24 # サイトのビルドに使用するNodeのバージョンです。デフォルトは24です。（オプション）
-          # package-manager: pnpm@latest # 依存関係のインストールとサイトのビルドに使用するNodeパッケージマネージャーです。ロックファイルに基づいて自動検出されます。（オプション）
-          # build-cmd: pnpm run build # サイトをビルドするためのコマンドです。デフォルトでパッケージのbuildスクリプトを実行します。（オプション）
-        # env:
-          # PUBLIC_POKEAPI: 'https://pokeapi.co/api/v2' # 変数の値にはシングルクォートを使用してください。（オプション）
+# 同時実行時の競合を防ぐ設定（古いビルドを自動キャンセル）
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
+jobs:
   deploy:
-    needs: build
-    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22 # Blumeの推奨環境（Node 22.12以降）に合わせます
+
+      - name: Install dependencies
+        run: npm ci # pnpmやyarn、bunをお使いの場合は適宜変更してください
+
+      - name: Build docs
+        run: npx blume build
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist # Blumeのデフォルト出力先
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
