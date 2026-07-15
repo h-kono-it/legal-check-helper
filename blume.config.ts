@@ -9,6 +9,7 @@ export default defineConfig({
   },
   deployment: {
     site: "https://h-kono-it.github.io/legal-check-helper",
+    base: "/docs",
   },
   // アナリティクス未設定の静的サイトではクリックが集計されず何も保存されないため、
   // 意味のないUIになる「Was this page helpful?」ウィジェットを無効化する
