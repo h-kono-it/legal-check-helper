@@ -12,7 +12,9 @@ export default defineConfig({
     og: { enabled: true }, // or false to opt out even with a site set
   },
   deployment: {
-    site: "https://h-kono-it.github.io/legal-check-helper",
+    // site はオリジンのみ。base と重複させると OG 画像・canonical URL が
+    // 「/legal-check-helper/legal-check-helper/...」のように二重連結され 404 になる
+    site: "https://h-kono-it.github.io",
     base: "/legal-check-helper",
   },
   // アナリティクス未設定の静的サイトではクリックが集計されず何も保存されないため、
