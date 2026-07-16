@@ -13,5 +13,8 @@
   },
   "devDependencies": {
     "patch-package": "^8.0.1"
+  },
+  "volta": {
+    "node": "22.23.1"
   }
 }

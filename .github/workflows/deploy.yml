@@ -31,7 +31,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
-          node-version: 22 # Blumeの推奨環境（Node 22.12以降）に合わせます
+          # package.json の volta.node を読む（手元は Volta が同じ値へ自動で切り替える）。
+          # 手元と CI で Node がずれると同梱の npm もずれる。npm 11 は npm install のたびに
+          # package-lock.json から optional な wasm32 系の依存（@emnapi/*）を刈るが、
+          # npm 11 自身の npm ci はそれを素通しするので手元では気づけず、
+          # npm 10 の CI だけが「Missing: @emnapi/core」で落ちる
+          node-version-file: "package.json"
 
       - name: Install dependencies
         run: npm ci # pnpmやyarn、bunをお使いの場合は適宜変更してください
