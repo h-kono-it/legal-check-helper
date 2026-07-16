@@ -39,7 +39,13 @@ https://h-kono-it.github.io/legal-check-helper
 docs/
 ├── index.mdx            # ハブ：2つの逆引きへの入口
 ├── disclaimer.mdx       # 免責事項の全文
-├── 10-features/         # 逆引き①：機能から引く（/features、一覧表 + 1機能=1ページ）
+├── 10-features/         # 逆引き①：機能から引く（/features）
+│   ├── index.mdx        #   カテゴリへのハブ
+│   ├── 10-money/        #   お金・決済系（index.mdx が確認事項の表 + 1機能=1ページ）
+│   ├── 20-privacy/      #   通信・プライバシー系
+│   ├── 30-people/       #   人・組織系
+│   ├── 40-content/      #   コンテンツ・画面系
+│   └── 50-accounting/   #   DB・経理系
 ├── 20-products/         # 逆引き②：商材から引く（/products、一覧表 + 1商材=1ページ）
 └── 30-checklist/        # フェーズ別チェックリスト（/checklist、企画〜運用 + 法務相談準備）
 ```

@@ -7,6 +7,10 @@ export default defineConfig({
   content: {
     root: "docs",
   },
+  navigation: {
+    // 機能ページはカテゴリ配下にネストしているため、折りたためるグループで表示する
+    sidebar: { display: "group" },
+  },
   seo: {
     x: { handle: "@hk_it7", creator: "@hk_it7" },
     og: { enabled: true }, // or false to opt out even with a site set
