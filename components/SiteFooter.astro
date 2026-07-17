@@ -1,5 +1,11 @@
 ---
 const year = new Date().getFullYear();
+
+// .astro のリンクは MDX と違って base が自動で付かないため、ここで解決する。
+// import.meta.env.BASE_URL は deployment.base（末尾スラッシュ付き）を返すので、
+// base を変えてもこのファイルは触らずに済む。
+const withBase = (path: string): string =>
+  `${import.meta.env.BASE_URL.replace(/\/$/, "")}${path}`;
 ---
 
 <footer class="site-footer">
@@ -12,9 +18,14 @@ const year = new Date().getFullYear();
       <li>本サイトの利用により生じたいかなる損害についても、運営者は一切の責任を負いません。</li>
     </ul>
     <p class="site-footer__links">
-      <a href="/disclaimer">免責事項の全文</a>
+      <a href={withBase("/disclaimer")}>免責事項の全文</a>
       <span aria-hidden="true">・</span>
-      <span>&copy; {year} 法務案件チェックポイント</span>
+      <span>
+        &copy; {year}
+        <a href="https://x.com/hk_it7" rel="noopener noreferrer" target="_blank">
+          世迷言ラボ
+        </a>
+      </span>
     </p>
   </div>
 </footer>
