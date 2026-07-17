@@ -1,3 +1,60 @@
+diff --git a/node_modules/blume/dist/cli/index.js b/node_modules/blume/dist/cli/index.js
+index 8c6ca7c..8836a67 100755
+--- a/node_modules/blume/dist/cli/index.js
++++ b/node_modules/blume/dist/cli/index.js
+@@ -8697,10 +8697,11 @@ const formatDate = (value: string | null | undefined) => {
+     return;
+   }
+   const date = new Date(value);
++  // LOCAL PATCH (patch-package): "en"/"long" -> "ja"/"medium" — see src/astro/templates.ts
+   return Number.isNaN(date.getTime())
+     ? undefined
+-    : new Intl.DateTimeFormat("en", {
+-        dateStyle: "long",
++    : new Intl.DateTimeFormat("ja", {
++        dateStyle: "medium",
+         timeZone: "UTC",
+       }).format(date);
+ };
+diff --git a/node_modules/blume/src/astro/templates.ts b/node_modules/blume/src/astro/templates.ts
+index aa9a00b..8c43a6e 100644
+--- a/node_modules/blume/src/astro/templates.ts
++++ b/node_modules/blume/src/astro/templates.ts
+@@ -1480,10 +1480,13 @@ const formatDate = (value: string | null | undefined) => {
+     return;
+   }
+   const date = new Date(value);
++  // LOCAL PATCH (patch-package): "en"/"long" -> "ja"/"medium" so the changelog
++  // timeline renders yyyy/mm/dd, matching the patched last-updated stamp.
++  // Upstream hardcodes "en" here while RootLayout honors the locale.
+   return Number.isNaN(date.getTime())
+     ? undefined
+-    : new Intl.DateTimeFormat("en", {
+-        dateStyle: "long",
++    : new Intl.DateTimeFormat("ja", {
++        dateStyle: "medium",
+         timeZone: "UTC",
+       }).format(date);
+ };
+diff --git a/node_modules/blume/src/components/layout/RootLayout.astro b/node_modules/blume/src/components/layout/RootLayout.astro
+index 2ccea6d..ed94052 100644
+--- a/node_modules/blume/src/components/layout/RootLayout.astro
++++ b/node_modules/blume/src/components/layout/RootLayout.astro
+@@ -289,11 +289,13 @@ const xSite = normalizeXHandle(x?.handle);
+ const xCreator = normalizeXHandle(x?.creator);
+ 
+ // "Last updated on <date>" — formatted in UTC to match the changelog timeline.
++// LOCAL PATCH (patch-package): dateStyle "long" -> "medium" so the ja locale
++// renders numeric yyyy/mm/dd (2026/07/16) instead of 2026年7月16日.
+ const lastModifiedDate = lastModified ? new Date(lastModified) : null;
+ const formattedLastModified =
+   lastModifiedDate && !Number.isNaN(lastModifiedDate.getTime())
+     ? new Intl.DateTimeFormat(locale || "en", {
+-        dateStyle: "long",
++        dateStyle: "medium",
+         timeZone: "UTC",
+       }).format(lastModifiedDate)
+     : null;
 diff --git a/node_modules/blume/src/og/card.ts b/node_modules/blume/src/og/card.ts
 index 5cd2ad4..af7140d 100644
 --- a/node_modules/blume/src/og/card.ts

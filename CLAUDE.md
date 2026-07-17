@@ -32,6 +32,7 @@
 - `docs/10-features/` — 機能からの逆引き（→ `/features`）。`index.mdx` はカテゴリへのハブ。**配下はカテゴリ別サブフォルダ**（`10-money` / `20-privacy` / `30-people` / `40-content` / `50-accounting`）で、各カテゴリの `index.mdx` が確認事項の表、その下が 1機能=1ページ（→ `/features/money/point-issuance` 等）
 - `docs/20-products/` — 商材からの逆引き（→ `/products`）
 - `docs/30-checklist/` — フェーズ別チェックリスト（→ `/checklist`）
+- `docs/90-changelog/` — 更新履歴。1エントリ=1ファイルで frontmatter に `type: changelog` / `date` / `changelog.category` を付ける。`/changelog` のタイムラインと RSS は自動生成なので **index.mdx を置かないこと**（置くと自動生成が止まる）。ヘッダーのタブ（`navigation.tabs`）から辿る。ページの追加や大きな更新をしたらエントリを1本足す
 - 数字プレフィックスはサイドバー並び順の制御用。URL からは剥がれる（ネストしたフォルダでも同様。検証済み）
 - 機能ページをカテゴリ間で移動すると URL が変わる。公開後に移動するなら、被リンクの有無を見て `blume.config.ts` の `redirects` を検討する（`to` には `deployment.base` が自動で付かないため、指定する場合は自分で base を含める）
 - 各フォルダの `meta.ts` がグループ名・ページ順を定義。ページ追加時は `meta.ts` の `pages` にも追記する
@@ -66,5 +67,7 @@ npm run doctor   # 診断
 
 ## 現状の注意点
 
-- OG 画像の日本語が豆腐になる問題を `patch-package` で回避中（`patches/blume+1.0.4.patch` が `assets/og-fonts/` の Noto Sans JP を Takumi に読ませる）。この回避策のため `blume` はレンジでなく **1.0.4 に固定**している。upstream に起票済み（[blume#62](https://github.com/haydenbleasel/blume/issues/62)）で、解決したらパッチごと外す
+- `patches/blume+1.0.4.patch` に **独立した2つの変更**が入っている（`blume` はレンジでなく **1.0.4 に固定**）:
+  1. `src/og/card.ts` — OG 画像の日本語豆腐対策。`assets/og-fonts/` の Noto Sans JP を Takumi に読ませる。upstream に起票済み（[blume#62](https://github.com/haydenbleasel/blume/issues/62)）で、解決したら**この部分だけ**外す
+  2. 日付表示を `yyyy/mm/dd` にする（ja × `dateStyle: "medium"`）。ページ末尾の「最終更新」は `src/components/layout/RootLayout.astro`、changelog タイムラインは `src/astro/templates.ts` **と `dist/cli/index.js` の両方**（CLI はコンパイル済み dist で動くため、src だけ直しても効かない。src 側は意図の記録として同じ変更を入れてある）。upstream に設定項目がないための恒久パッチ。#62 が解決してもこちらは残す
 - `.blume/` はビルドのキャッシュを持つ。sitemap など生成物が古いまま出ることがあるので、出力を検証するときは `rm -rf .blume dist` してからビルドする（CI は常にクリーン）

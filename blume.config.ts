@@ -7,9 +7,23 @@ export default defineConfig({
   content: {
     root: "docs",
   },
+  // 単一ロケール ja。デフォルトロケールはコンテンツルートのまま・URLプレフィックスも
+  // 付かないので、URL 構造は変わらない。UI 文言（検索・最終更新・変更履歴など）が
+  // 同梱の日本語パックになり、日付表示も日本語圏の形式になる
+  i18n: {
+    defaultLocale: "ja",
+    locales: [{ code: "ja", label: "日本語" }],
+  },
   navigation: {
     // 機能ページはカテゴリ配下にネストしているため、折りたためるグループで表示する
     sidebar: { display: "group" },
+    // 更新履歴はサイドバーではなくヘッダーのタブから辿る（本家 useblume.dev と同じ構成）。
+    // タブを設定するとナビツリーがタブごとに分割され、changelog エントリは
+    // ドキュメント側のサイドバーに現れなくなる
+    tabs: [
+      { label: "ドキュメント", path: "/" },
+      { label: "更新履歴", path: "/changelog" },
+    ],
   },
   seo: {
     x: { handle: "@hk_it7", creator: "@hk_it7" },
@@ -24,4 +38,9 @@ export default defineConfig({
   // アナリティクス未設定の静的サイトではクリックが集計されず何も保存されないため、
   // 意味のないUIになる「Was this page helpful?」ウィジェットを無効化する
   feedback: false,
+  // 各ページに git 履歴由来の「最終更新」を表示する。法令を扱うサイトなので
+  // 「このページはいつ時点の情報か」を読者が判断できるようにする。
+  // CI では actions/checkout の fetch-depth: 0 が前提（浅いクローンだと全ページが
+  // デプロイ日になってしまう）。deploy.yml 側に設定済み。
+  lastModified: true,
 });
