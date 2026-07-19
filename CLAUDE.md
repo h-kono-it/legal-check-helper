@@ -29,12 +29,12 @@
 ## ディレクトリ構成
 
 - `docs/index.mdx` — ハブページ。逆引きへの入口
-- `docs/10-features/` — 機能からの逆引き（→ `/features`）。`index.mdx` はカテゴリへのハブ。**配下はカテゴリ別サブフォルダ**（`10-money` / `20-privacy` / `30-people` / `40-content` / `50-accounting`）で、各カテゴリの `index.mdx` が確認事項の表、その下が 1機能=1ページ（→ `/features/money/point-issuance` 等）
+- `docs/10-features/` — 機能からの逆引き（→ `/features`）。`index.mdx` はカテゴリへのハブ。**配下はカテゴリ別サブフォルダ**（`10-money` / `20-privacy` / `30-people` / `40-content` / `50-accounting` / `60-assets`）で、各カテゴリの `index.mdx` が確認事項の表、その下が 1機能=1ページ（→ `/features/money/point-issuance` 等）
 - `docs/20-products/` — 商材からの逆引き（→ `/products`）
 - `docs/30-checklist/` — フェーズ別チェックリスト（→ `/checklist`）
 - `docs/90-changelog/` — 更新履歴。1エントリ=1ファイルで frontmatter に `type: changelog` / `date` / `changelog.category` を付ける。`/changelog` のタイムラインと RSS は自動生成なので **index.mdx を置かないこと**（置くと自動生成が止まる）。ヘッダーのタブ（`navigation.tabs`）から辿る。ページの追加や大きな更新をしたらエントリを1本足す
 - 数字プレフィックスはサイドバー並び順の制御用。URL からは剥がれる（ネストしたフォルダでも同様。検証済み）
-- 機能ページをカテゴリ間で移動すると URL が変わる。公開後に移動するなら、被リンクの有無を見て `blume.config.ts` の `redirects` を検討する。**現在ピン留め中の blume 1.0.4 では** `to` に `deployment.base` が自動で付かないため自分で base を含める（[blume#71](https://github.com/haydenbleasel/blume/pull/71) で修正済み。1.0.5 以降に上げたら base は書かない。手書き base も冪等処理で二重にはならない）
+- 機能ページをカテゴリ間で移動すると URL が変わる。公開後に移動するなら、被リンクの有無を見て `blume.config.ts` の `redirects` を検討する。blume 1.1.0 以降は `to` に `deployment.base` が自動で付くため base は書かない（[blume#71](https://github.com/haydenbleasel/blume/pull/71)）
 - 各フォルダの `meta.ts` がグループ名・ページ順を定義。ページ追加時は `meta.ts` の `pages` にも追記する
 - `blume.config.ts` — サイト設定 / `components.ts` — レイアウトオーバーライド
 - `BLUME.md` — Blume の使い方まとめ。**Blume の機能・設定に触るときはまずこれを読む**
@@ -68,7 +68,7 @@ npm run doctor   # 診断
 
 ## 現状の注意点
 
-- `patches/blume+1.0.4.patch` に **独立した2つの変更**が入っている（`blume` はレンジでなく **1.0.4 に固定**）:
-  1. `src/og/card.ts` — OG 画像の日本語豆腐対策。`assets/og-fonts/` の Noto Sans JP を Takumi に読ませる。upstream に起票済み（[blume#62](https://github.com/haydenbleasel/blume/issues/62)）で、解決したら**この部分だけ**外す
-  2. 日付表示を `yyyy/mm/dd` にする（ja × `dateStyle: "medium"`）。ページ末尾の「最終更新」は `src/components/layout/RootLayout.astro`、changelog タイムラインは `src/astro/templates.ts` **と `dist/cli/index.js` の両方**（CLI はコンパイル済み dist で動くため、src だけ直しても効かない。src 側は意図の記録として同じ変更を入れてある）。upstream に設定項目がないための恒久パッチ。#62 が解決してもこちらは残す
+- blume は **1.1.0 以降**（`^1.1.0`）。1.0.4 時代にあった patch-package のパッチは全廃した:
+  - OG 画像の日本語豆腐対策 → upstream の `seo.og.fonts` で対応（[blume#62](https://github.com/haydenbleasel/blume/issues/62) の解決）。`blume.config.ts` で Noto Sans JP を指定しており、**ビルド時に Google Fonts から取得**する（ローカルフォント `assets/og-fonts/` は削除済み）。OG カードの描画は fontWeight 400/600 を使う
+  - 日付表示の `yyyy/mm/dd` パッチ → 廃止。1.1.0 で changelog タイムラインもロケール準拠になったため、ja の標準（`2026年7月19日` 形式）をそのまま使う
 - `.blume/` はビルドのキャッシュを持つ。sitemap など生成物が古いまま出ることがあるので、出力を検証するときは `rm -rf .blume dist` してからビルドする（CI は常にクリーン）

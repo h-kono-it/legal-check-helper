@@ -5,14 +5,10 @@
   "scripts": {
     "dev": "blume dev",
     "build": "blume build",
-    "doctor": "blume doctor",
-    "postinstall": "patch-package"
+    "doctor": "blume doctor"
   },
   "dependencies": {
-    "blume": "1.0.4"
-  },
-  "devDependencies": {
-    "patch-package": "^8.0.1"
+    "blume": "^1.1.0"
   },
   "volta": {
     "node": "22.23.1"

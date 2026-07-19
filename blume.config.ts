@@ -27,7 +27,12 @@ export default defineConfig({
   },
   seo: {
     x: { handle: "@hk_it7", creator: "@hk_it7" },
-    og: { enabled: true }, // or false to opt out even with a site set
+    og: {
+      enabled: true, // or false to opt out even with a site set
+      // OG カードの日本語豆腐対策（blume#62 → 1.1.0 の seo.og.fonts で解決）。
+      // ビルド時に Google Fonts から取得される。カードの本文は fontWeight 400/600 を使う
+      fonts: [{ name: "Noto Sans JP", weight: [400, 600] }],
+    },
   },
   deployment: {
     // site はオリジンのみ。base と重複させると OG 画像・canonical URL が
