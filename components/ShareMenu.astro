@@ -1,0 +1,187 @@
+---
+// シェアメニュー。components.ts から2箇所に注入される:
+//   - layout.PageFooter（本文直後）… placement="bottom"。読了後の共有用。ポップオーバーは上に開く
+//   - layout.PageHeader（タイトル直上）… placement="top"（ShareMenuTop.astro 経由）。
+//     「このページだ」と確認してすぐ共有する逆引き動線用。控えめ表示で、ポップオーバーは下に開く
+// シェア先の URL はビルド時に site + base + route から組み立てる（Astro.site は origin のみ、
+// base は import.meta.env.BASE_URL が持つ。SiteFooter.astro と同じ解決方法）。
+// クリップボードへのコピーだけクライアント JS で行い、X・はてブは静的リンクなので JS なしでも動く。
+interface Props {
+  route: string;
+  page: { title?: string };
+  placement?: "top" | "bottom";
+}
+
+const { route, page, placement = "bottom" } = Astro.props;
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+const url = Astro.site ? new URL(`${base}${route}`, Astro.site).href : "";
+const title = page?.title ?? "";
+
+const xHref = url
+  ? `https://x.com/intent/post?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`
+  : "#";
+const hatenaHref = url
+  ? `https://b.hatena.ne.jp/entry/panel/?url=${encodeURIComponent(url)}&btitle=${encodeURIComponent(title)}`
+  : "#";
+---
+
+<div class:list={["share-menu", `share-menu--${placement}`]} data-share-menu>
+  <details class="share-menu__root">
+    <summary class="share-menu__button">
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height="14"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="14"
+      >
+        <circle cx="18" cy="5" r="3"></circle>
+        <circle cx="6" cy="12" r="3"></circle>
+        <circle cx="18" cy="19" r="3"></circle>
+        <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line>
+        <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line>
+      </svg>
+      {placement === "top" ? "共有" : "このページを共有"}
+    </summary>
+    <div class="share-menu__popover">
+      <button class="share-menu__item" data-share-copy="url" type="button">
+        リンクをコピー
+      </button>
+      <button class="share-menu__item" data-share-copy="titled" type="button">
+        タイトル付きでコピー
+      </button>
+      <a
+        class="share-menu__item"
+        href={xHref}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        X でシェア
+      </a>
+      <a
+        class="share-menu__item"
+        href={hatenaHref}
+        rel="noopener noreferrer"
+        target="_blank"
+      >
+        はてなブックマーク
+      </a>
+    </div>
+  </details>
+</div>
+
+<script>
+  const menus = document.querySelectorAll<HTMLElement>("[data-share-menu]");
+
+  for (const menu of menus) {
+    const details = menu.querySelector("details");
+    if (!details) {
+      continue;
+    }
+
+    // メニューの外をクリックしたら閉じる
+    document.addEventListener("click", (event) => {
+      if (details.open && !details.contains(event.target as Node)) {
+        details.open = false;
+      }
+    });
+
+    for (const button of menu.querySelectorAll<HTMLButtonElement>(
+      "[data-share-copy]"
+    )) {
+      button.addEventListener("click", async () => {
+        // タイトル付きは Slack 等にそのまま貼る用途。document.title はサイト名サフィックス込み
+        const text =
+          button.dataset.shareCopy === "titled"
+            ? `${document.title}\n${location.href}`
+            : location.href;
+        try {
+          await navigator.clipboard.writeText(text);
+          const label = button.textContent;
+          button.textContent = "コピーしました";
+          setTimeout(() => {
+            button.textContent = label;
+            details.open = false;
+          }, 1200);
+        } catch {
+          // クリップボードが使えない環境（http 等）では何もしない
+        }
+      });
+    }
+  }
+</script>
+
+<style>
+  .share-menu {
+    max-width: var(--blume-content-width, 42rem);
+    margin: 2.5rem auto 0;
+    display: flex;
+    justify-content: flex-end;
+  }
+  /* タイトル直上の控えめ版。ポップオーバーは下向きに開く */
+  .share-menu--top {
+    margin: 0 auto 0.75rem;
+    font-size: 0.8rem;
+  }
+  .share-menu--top .share-menu__popover {
+    bottom: auto;
+    top: calc(100% + 0.4rem);
+  }
+  .share-menu__root {
+    position: relative;
+    font-size: 0.85rem;
+  }
+  .share-menu__button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--blume-border, color-mix(in srgb, currentColor 15%, transparent));
+    border-radius: 9999px;
+    cursor: pointer;
+    list-style: none;
+    opacity: 0.8;
+    transition: opacity 0.15s;
+    user-select: none;
+  }
+  .share-menu__button::-webkit-details-marker {
+    display: none;
+  }
+  .share-menu__button:hover,
+  .share-menu__root[open] .share-menu__button {
+    opacity: 1;
+  }
+  .share-menu__popover {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 0.4rem);
+    min-width: 12rem;
+    padding: 0.3rem;
+    border: 1px solid var(--blume-border, color-mix(in srgb, currentColor 15%, transparent));
+    border-radius: 0.6rem;
+    background: var(--blume-background, Canvas);
+    box-shadow: 0 4px 16px color-mix(in srgb, currentColor 12%, transparent);
+    z-index: 10;
+  }
+  .share-menu__item {
+    display: block;
+    width: 100%;
+    padding: 0.45rem 0.7rem;
+    border: 0;
+    border-radius: 0.4rem;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .share-menu__item:hover {
+    background: color-mix(in srgb, currentColor 8%, transparent);
+  }
+</style>

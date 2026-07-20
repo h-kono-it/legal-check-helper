@@ -1,0 +1,12 @@
+---
+// layout.PageHeader スロット用の薄いラッパー。スロットからはカスタム props を渡せないため、
+// ここで placement="top" を固定して ShareMenu を呼ぶ。
+import ShareMenu from "./ShareMenu.astro";
+
+interface Props {
+  route: string;
+  page: { title?: string };
+}
+---
+
+<ShareMenu page={Astro.props.page} placement="top" route={Astro.props.route} />
