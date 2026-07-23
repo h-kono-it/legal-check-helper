@@ -14,6 +14,7 @@ export default defineConfig({
     defaultLocale: "ja",
     locales: [{ code: "ja", label: "日本語" }],
   },
+  dateFormat: { year: "numeric", month: "2-digit", day: "2-digit" },
   navigation: {
     // 機能ページはカテゴリ配下にネストしているため、折りたためるグループで表示する
     sidebar: { display: "group" },
