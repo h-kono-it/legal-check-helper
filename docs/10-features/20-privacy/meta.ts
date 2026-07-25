@@ -10,5 +10,6 @@ export default defineMeta({
     "analytics-sdk",
     "account-deletion",
     "external-data-sync",
+    "gdpr",
   ],
 });
