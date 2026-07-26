@@ -32,7 +32,10 @@
 - `docs/10-features/` — 機能からの逆引き（→ `/features`）。`index.mdx` はカテゴリへのハブ。**配下はカテゴリ別サブフォルダ**（`10-money` / `20-privacy` / `30-people` / `40-content` / `50-accounting` / `60-assets`）で、各カテゴリの `index.mdx` が確認事項の表、その下が 1機能=1ページ（→ `/features/money/point-issuance` 等）
 - `docs/20-products/` — 商材からの逆引き（→ `/products`）
 - `docs/30-checklist/` — フェーズ別チェックリスト（→ `/checklist`）
-- `docs/90-changelog/` — 更新履歴。1エントリ=1ファイルで frontmatter に `type: changelog` / `date` / `changelog.category` を付ける。`/changelog` のタイムラインと RSS は自動生成なので **index.mdx を置かないこと**（置くと自動生成が止まる）。ヘッダーのタブ（`navigation.tabs`）から辿る。ページの追加や大きな更新をしたらエントリを1本足す
+- `docs/90-changelog/` — 更新履歴。1エントリ=1ファイルで frontmatter に `type: changelog` / `date` / `changelog.category` を付ける。ヘッダーのタブ（`navigation.tabs`）から辿る。ページの追加や大きな更新をしたらエントリを1本足す
+  - `/changelog` は `index.mdx` + `components/ChangelogIndex.astro` のタイトル一覧。**index.mdx を置いた時点で Blume 標準の全文タイムラインは生成されない**（意図的にそうしている。リファレンスサイトなので更新履歴も一覧で見渡す形に寄せた）。一覧の収集・並び順・日付書式は `ChangelogIndex.astro` が自前で持つので、表示を変えるときはそこを触る
+  - 一覧が index.mdx にあることは、ヘッダータブが `/changelog` に正しく向くためにも必要。blume の `resolveTabHref`（`core/navigation.ts`）はナビツリーにタブの `path` と一致するノードが無いとセクション先頭ページにフォールバックするため、index.mdx が無いと「更新履歴」タブが最新エントリの個別ページに飛ぶ
+  - RSS（`/changelog/rss.xml`）は `type: changelog` の frontmatter から別系統で生成されるので、この差し替えの影響を受けない
 - 数字プレフィックスはサイドバー並び順の制御用。URL からは剥がれる（ネストしたフォルダでも同様。検証済み）
 - 機能ページをカテゴリ間で移動すると URL が変わる。公開後に移動するなら、被リンクの有無を見て `blume.config.ts` の `redirects` を検討する。blume 1.1.0 以降は `to` に `deployment.base` が自動で付くため base は書かない（[blume#71](https://github.com/haydenbleasel/blume/pull/71)）
 - 各フォルダの `meta.ts` がグループ名・ページ順を定義。ページ追加時は `meta.ts` の `pages` にも追記する

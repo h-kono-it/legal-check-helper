@@ -1,0 +1,165 @@
+---
+// /changelog の一覧。Blume 標準の changelog タイムラインは各エントリの本文を
+// 全文展開するが、このサイトは「引く」ためのリファレンスなので、更新履歴も
+// タイトルで見渡して必要な回だけ開ける形にする。
+//
+// docs/90-changelog/index.mdx を置いた時点で Blume 側の自動生成タイムラインは
+// 止まる（意図的）。エントリの収集・並び順・日付書式はここで自前に再現する。
+// RSS（/changelog/rss.xml）は type: changelog の frontmatter から別途生成される
+// ため、この差し替えの影響を受けない。
+import { getCollection } from "astro:content";
+import { withBase } from "blume/components/islands/base-path.ts";
+import { resolveDateFormatOptions } from "blume/core/date-format.ts";
+import data from "blume:data";
+
+// frontmatter の date は Date で届くことも文字列で届くこともあるので、扱う前に
+// ISO 文字列へ寄せる（<time datetime> にそのまま入れられる形にしておく）。
+const toIso = (value: Date | string | null | undefined) => {
+  if (!value) {
+    return null;
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+};
+
+// `astro:content` のコレクション型は .blume 配下の生成物に依存するため、ここで
+// 使うぶんだけを最小限に型付けしておく。
+interface ChangelogEntry {
+  id: string;
+  data: {
+    changelog?: { category?: string; date?: Date | string | null } | null;
+    date?: Date | string | null;
+    draft?: boolean;
+    sidebar?: { hidden?: boolean };
+    title?: string;
+    type?: string;
+  };
+}
+
+const entryDate = (entry: ChangelogEntry) =>
+  toIso(entry.data.date ?? entry.data.changelog?.date);
+
+const toTime = (value: string | null) => (value ? Date.parse(value) : 0);
+
+// 日付の見た目は各ページの「最終更新」やタイムラインと揃える（blume.config.ts の
+// dateFormat / i18n.defaultLocale がそのまま効く）。
+const locale = data.config.i18n?.defaultLocale ?? "en";
+const dateFormatOptions = resolveDateFormatOptions(data.config.dateFormat);
+const formatDate = (value: string | null) =>
+  value
+    ? new Intl.DateTimeFormat(locale, dateFormatOptions).format(new Date(value))
+    : undefined;
+
+// エントリ ID → 実際のルート。数字プレフィックスの剥がし方を自前で真似ると
+// Blume 側の変換とずれるため、生成済みのルートマニフェストから引く。マニフェストの
+// path は base 抜きの論理ルートなので、リンクとして出すときに base を付ける。
+const routeByEntry = new Map<string, string>(
+  data.routes.map(
+    (route: { entryId: string; path: string }): [string, string] => [
+      route.entryId,
+      withBase(route.path),
+    ]
+  )
+);
+
+const entries = ((await getCollection("docs")) as ChangelogEntry[])
+  .filter(
+    (entry) =>
+      entry.data.type === "changelog" &&
+      !entry.data.draft &&
+      !entry.data.sidebar?.hidden
+  )
+  .toSorted((a, b) => toTime(entryDate(b)) - toTime(entryDate(a)))
+  .map((entry) => ({
+    category: entry.data.changelog?.category,
+    date: formatDate(entryDate(entry)),
+    dateTime: entryDate(entry),
+    href: routeByEntry.get(entry.id),
+    title: entry.data.title ?? "更新",
+  }));
+---
+
+{
+  entries.length === 0 ? (
+    <p>まだ更新履歴はありません。</p>
+  ) : (
+    <ul class="changelog-index not-prose">
+      {entries.map((entry) => (
+        <li class="changelog-index__item">
+          <div class="changelog-index__meta">
+            {entry.dateTime ? (
+              <time class="changelog-index__date" datetime={entry.dateTime}>
+                {entry.date}
+              </time>
+            ) : null}
+            {entry.category ? (
+              <span class="changelog-index__category">{entry.category}</span>
+            ) : null}
+          </div>
+          <p class="changelog-index__title">
+            {entry.href ? <a href={entry.href}>{entry.title}</a> : entry.title}
+          </p>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+<style>
+  .changelog-index {
+    margin: 1.5rem 0 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  }
+
+  .changelog-index__item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 1rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  }
+
+  .changelog-index__meta {
+    display: flex;
+    flex-shrink: 0;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .changelog-index__date {
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.7;
+  }
+
+  /* 日付とカテゴリに最小幅を持たせて、行をまたいでタイトルの開始位置を揃える */
+  .changelog-index__category {
+    min-width: 6.5rem;
+    padding: 0.1rem 0.5rem;
+    text-align: center;
+    border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    opacity: 0.8;
+    white-space: nowrap;
+  }
+
+  .changelog-index__title {
+    flex: 1 1 18rem;
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .changelog-index__title a {
+    text-decoration: none;
+  }
+
+  .changelog-index__title a:hover {
+    text-decoration: underline;
+  }
+</style>
