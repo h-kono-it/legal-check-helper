@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "blume dev",
-    "build": "blume build",
+    "build": "blume build && node scripts/reindex-search.mjs",
     "doctor": "blume doctor"
   },
   "dependencies": {
@@ -12,5 +12,8 @@
   },
   "volta": {
     "node": "22.23.1"
+  },
+  "devDependencies": {
+    "pagefind": "^1.5.2"
   }
 }

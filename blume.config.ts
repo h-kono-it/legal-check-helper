@@ -15,6 +15,36 @@ export default defineConfig({
     locales: [{ code: "ja", label: "日本語" }],
   },
   dateFormat: { year: "numeric", month: "2-digit", day: "2-digit" },
+  // デフォルトの orama は日本語を検索できない。Orama のトークナイザは言語ごとの
+  // 区切り正規表現で分割する方式で、blume はトークナイザを差し替えないため
+  // language は english 固定になる。english の splitter（/[^A-Za-z…0-9_'-]+/）は
+  // 日本語の文字をすべて区切り扱いにするので、本文も検索語もトークンが空になり
+  // ヒット0件になる（ASCII を含む "GDPR" 等だけが引ける）。
+  // pagefind は同梱バイナリが pagefind_extended で CJK の分かち書きに対応しており、
+  // 出力の <html lang="ja"> から ja のインデックスを作る。トレードオフ:
+  //   - 検索はプロダクションビルドでのみ動く（dev はダイアログが「本番ビルドで利用可」表示）
+  //   - セクションのフィルタピルが出ない／プレビュー枠が本文でなく抜粋になる
+  //   - blume が張るインデックスはページ全体が対象（本来の data-pagefind-body が
+  //     出力されていない）ため、本文だけで張り直している。scripts/reindex-search.mjs
+  // 本筋の修正は orama 側にトークナイザを差し込む口を用意することなので、upstream に
+  // issue を出すまでの暫定対応。
+  //
+  // popular は ⌘K を押した直後（何も入力していないとき）に出る一覧。既定はナビツリーを
+  // 平坦化した先頭6件で、このサイトだと「一覧」「概要」のようなインデックスページの
+  // ラベルが並んで何のページか分からないため、逆引きの入口を手で並べる。
+  // href は deployment.base 抜きで書く（クリック時にクライアント側が前置する）。
+  // icon は組み込みアイコン名のみ有効（画像や inline SVG は blume doctor が警告する）
+  search: {
+    provider: "pagefind",
+    popular: [
+      { label: "機能から引く", href: "/features", icon: "zap" },
+      { label: "商材から引く", href: "/products", icon: "shopping-cart" },
+      { label: "フェーズ別チェックリスト", href: "/checklist", icon: "list-checks" },
+      { label: "法務相談の準備", href: "/checklist/consulting", icon: "messages-square" },
+      { label: "更新履歴", href: "/changelog", icon: "history" },
+      { label: "免責事項", href: "/disclaimer", icon: "shield-alert" },
+    ],
+  },
   navigation: {
     // 機能ページはカテゴリ配下にネストしているため、折りたためるグループで表示する
     sidebar: { display: "group" },

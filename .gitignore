@@ -2,5 +2,6 @@
 dist/
 .blume-verify/
 .claude/*.local.*
+tmp/*
 
 node_modules/
