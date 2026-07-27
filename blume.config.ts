@@ -51,9 +51,13 @@ export default defineConfig({
     // 更新履歴はサイドバーではなくヘッダーのタブから辿る（本家 useblume.dev と同じ構成）。
     // タブを設定するとナビツリーがタブごとに分割され、changelog エントリは
     // ドキュメント側のサイドバーに現れなくなる
+    // href は 1.2.0 で入ったリンク先の明示指定（blume#122）。path だけだと
+    // resolveTabHref がナビツリーに /changelog というノードを見つけられない場合に
+    // セクション先頭ページ（＝最新エントリ）へフォールバックする。いまは
+    // docs/90-changelog/index.mdx があるので結果は同じだが、その暗黙の依存を切っておく
     tabs: [
       { label: "ドキュメント", path: "/" },
-      { label: "更新履歴", path: "/changelog" },
+      { label: "更新履歴", path: "/changelog", href: "/changelog" },
     ],
   },
   seo: {

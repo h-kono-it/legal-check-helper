@@ -34,7 +34,7 @@
 - `docs/30-checklist/` — フェーズ別チェックリスト（→ `/checklist`）
 - `docs/90-changelog/` — 更新履歴。1エントリ=1ファイルで frontmatter に `type: changelog` / `date` / `changelog.category` を付ける。ヘッダーのタブ（`navigation.tabs`）から辿る。ページの追加や大きな更新をしたらエントリを1本足す
   - `/changelog` は `index.mdx` + `components/ChangelogIndex.astro` のタイトル一覧。**index.mdx を置いた時点で Blume 標準の全文タイムラインは生成されない**（意図的にそうしている。リファレンスサイトなので更新履歴も一覧で見渡す形に寄せた）。一覧の収集・並び順・日付書式は `ChangelogIndex.astro` が自前で持つので、表示を変えるときはそこを触る
-  - 一覧が index.mdx にあることは、ヘッダータブが `/changelog` に正しく向くためにも必要。blume の `resolveTabHref`（`core/navigation.ts`）はナビツリーにタブの `path` と一致するノードが無いとセクション先頭ページにフォールバックするため、index.mdx が無いと「更新履歴」タブが最新エントリの個別ページに飛ぶ
+  - ヘッダータブのリンク先は `blume.config.ts` の `tabs` で `href: "/changelog"` を明示している（1.2.0 の [blume#122](https://github.com/haydenbleasel/blume/pull/122)）。`path` だけだと `resolveTabHref`（`core/navigation.ts`）がナビツリーにタブの `path` と一致するノードを見つけられないときセクション先頭ページにフォールバックするため、index.mdx の有無にタブの挙動が依存してしまう。`href` はその依存を切るためのもの
   - RSS（`/changelog/rss.xml`）は `type: changelog` の frontmatter から別系統で生成されるので、この差し替えの影響を受けない
 - 数字プレフィックスはサイドバー並び順の制御用。URL からは剥がれる（ネストしたフォルダでも同様。検証済み）
 - 機能ページをカテゴリ間で移動すると URL が変わる。公開後に移動するなら、被リンクの有無を見て `blume.config.ts` の `redirects` を検討する。blume 1.1.0 以降は `to` に `deployment.base` が自動で付くため base は書かない（[blume#71](https://github.com/haydenbleasel/blume/pull/71)）
@@ -71,7 +71,9 @@ npm run doctor   # 診断
 
 ## 現状の注意点
 
-- blume は **1.1.0 以降**（`^1.1.0`）。1.0.4 時代にあった patch-package のパッチは全廃した:
+- blume は **1.2.0 以降**（`^1.2.0`）。1.0.4 時代にあった patch-package のパッチは全廃した:
   - OG 画像の日本語豆腐対策 → upstream の `seo.og.fonts` で対応（[blume#62](https://github.com/haydenbleasel/blume/issues/62) の解決）。`blume.config.ts` で Noto Sans JP を指定しており、**ビルド時に Google Fonts から取得**する（ローカルフォント `assets/og-fonts/` は削除済み）。OG カードの描画は fontWeight 400/600 を使う
   - 日付表示の `yyyy/mm/dd` パッチ → 廃止。1.1.0 で changelog タイムラインもロケール準拠になったため、ja の標準（`2026年7月19日` 形式）をそのまま使う
 - `.blume/` はビルドのキャッシュを持つ。sitemap など生成物が古いまま出ることがあるので、出力を検証するときは `rm -rf .blume dist` してからビルドする（CI は常にクリーン）
+- **検索は既定の orama ではなく pagefind**（`blume.config.ts` の `search`）。orama のトークナイザは english 固定で、日本語は本文も検索語もトークンが空になりヒット0件になるため。さらに blume が張る pagefind の索引はページ全体が対象で、ヘッダー・目次・共有メニュー・検索ダイアログ自身の UI 文言まで抜粋に混ざるので、`scripts/reindex-search.mjs` が `rootSelector: "article"` で張り直している。この2点は upstream に未報告の課題。**`npm run build` を経由しないと再インデックスが走らない**ので、CI も `npx blume build` ではなく `npm run build` を呼ぶこと
+- 検索はプロダクションビルドでのみ動く（pagefind の実体が `dist/` にしかないため）。`npm run dev` 中に `/pagefind/pagefind.js` の 404 がログに出るのは想定内で、ダイアログは「本番ビルドで利用可」と表示する
