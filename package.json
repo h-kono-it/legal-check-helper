@@ -10,9 +10,6 @@
   "dependencies": {
     "blume": "^1.2.0"
   },
-  "volta": {
-    "node": "22.23.1"
-  },
   "devDependencies": {
     "pagefind": "^1.5.2"
   }
