@@ -71,7 +71,7 @@ npm run doctor   # 診断
 
 ## 現状の注意点
 
-- blume は **1.2.0 以降**（`^1.2.0`）。1.0.4 時代にあった patch-package のパッチは全廃した:
+- blume は **1.2.1 以降**（`^1.2.1`）。1.0.4 時代にあった patch-package のパッチは全廃した:
   - OG 画像の日本語豆腐対策 → upstream の `seo.og.fonts` で対応（[blume#62](https://github.com/haydenbleasel/blume/issues/62) の解決）。`blume.config.ts` で Noto Sans JP を指定しており、**ビルド時に Google Fonts から取得**する（ローカルフォント `assets/og-fonts/` は削除済み）。OG カードの描画は fontWeight 400/600 を使う
   - 日付表示の `yyyy/mm/dd` パッチ → 廃止。1.1.0 で changelog タイムラインもロケール準拠になったため、ja の標準（`2026年7月19日` 形式）をそのまま使う
 - `.blume/` はビルドのキャッシュを持つ。sitemap など生成物が古いまま出ることがあるので、出力を検証するときは `rm -rf .blume dist` してからビルドする（CI は常にクリーン）
