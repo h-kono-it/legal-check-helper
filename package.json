@@ -4,13 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "blume dev",
-    "build": "blume build && node scripts/reindex-search.mjs",
+    "build": "blume build",
     "doctor": "blume doctor"
   },
   "dependencies": {
     "blume": "^1.2.1"
-  },
-  "devDependencies": {
-    "pagefind": "^1.5.2"
   }
 }
