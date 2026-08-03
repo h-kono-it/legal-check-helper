@@ -46,8 +46,6 @@ jobs:
         run: npm ci # pnpmやyarn、bunをお使いの場合は適宜変更してください
 
       - name: Build docs
-        # blume build に加えて検索インデックスの張り直し（scripts/reindex-search.mjs）が
-        # 走るので、blume を直接叩かず npm script を経由する
         run: npm run build
 
       - name: Upload artifact
