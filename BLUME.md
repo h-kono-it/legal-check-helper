@@ -4,7 +4,7 @@
 「Fast, AI-ready, zero-config」がコンセプトで、`docs/` に Markdown を置くだけでナビゲーション・検索・テーマ込みのドキュメントサイトが立ち上がる。
 
 - 必要要件: **Node.js 22.12 以上**
-- このプロジェクトでの導入済みバージョン: `blume ^1.0.3`（`package.json` 参照）
+- このプロジェクトでの導入済みバージョン: `blume ^1.5.1`（`package.json` 参照）
 
 ## CLI コマンド
 

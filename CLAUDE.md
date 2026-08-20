@@ -71,7 +71,7 @@ npm run doctor   # 診断
 
 ## 現状の注意点
 
-- blume は **1.4.3 以降**（`^1.4.3`）。1.0.4 時代にあった patch-package のパッチは全廃した:
+- blume は **1.5.1 以降**（`^1.5.1`）。1.0.4 時代にあった patch-package のパッチは全廃した:
   - OG 画像の日本語豆腐対策 → upstream の `seo.og.fonts` で対応（[blume#62](https://github.com/haydenbleasel/blume/issues/62) の解決）。`blume.config.ts` で Noto Sans JP を指定しており、**ビルド時に Google Fonts から取得**する（ローカルフォント `assets/og-fonts/` は削除済み）。OG カードの描画は fontWeight 400/600 を使う
   - 日付表示の `yyyy/mm/dd` パッチ → 廃止。1.1.0 で changelog タイムラインもロケール準拠になったため、ja の標準（`2026年7月19日` 形式）をそのまま使う
 - `.blume/` はビルドのキャッシュを持つ。sitemap など生成物が古いまま出ることがあるので、出力を検証するときは `rm -rf .blume dist` してからビルドする（CI は常にクリーン）
@@ -81,4 +81,8 @@ npm run doctor   # 診断
   - **Latin の複数語クエリにも strict パスが効く**。日本語サイトの索引に対して英単語を複数並べると、全語を含むページが優先される（0件なら OR に落ちる）
 - 1.4.3（[blume#178](https://github.com/haydenbleasel/blume/pull/178)、こちらから出した PR）で、**語の内側に残る句読点が索引語から外れた**。`Intl.Segmenter` は UAX #29 に従って接続用句読点・書式文字を語の内側に保持するので、`スネーク_ケース` や `robots.txt` が丸ごと1トークンになり、句読点を打ち直さないと引けなかった。このサイトでは DB・経理ページの `balance_after` `idempotency_key` `expires_at` などが `balance` / `after` に分かれ、**部分語でも引けるようになっている**。ただし**数字に挟まれた `.` `,` と語中のアポストロフィは分割されない**（`1,000` `1.0.3` `don't` は1トークンのまま）。断片が増えてノイズになるため意図的にそうしている。索引前に NFC 正規化も入った
   - 自分が最初に出した版は「文字でも数字でもないもの」で分割していて、**タイの母音・声調記号（`\p{M}`）まで落として語を壊していた**（`เปลี่ยน` → `เปล` / `ยน`）。索引側もクエリ側も同じ壊れ方をするので既存テストは通ってしまう。作者が追加コミットで `\p{M}` を語の一部に含める形に直してからマージされた。**`\p{L}\p{N}` だけで「語」を定義すると結合文字を使う文字体系が壊れる**、が教訓
+- 1.5.1 で**既定の display フォントが Inter Tight → Inter に変わった**（body と同じ family になり、見出しのトラッキングはテーマ側の `letter-spacing: -0.05em` で出す）。あわせて preload が「above-the-fold で実際に使うウェイトだけ」に絞られ、このサイトでは preload される woff2 が 2 ファイルになった。`theme.fonts` を設定していないので既定に追随している＝**見出しの見た目がわずかに変わる**。Inter Tight に戻すなら slug `inter-tight` を指定する
+- 1.5.1 で**全リンクの prefetch（hover / viewport）と、同一オリジン遷移の View Transitions（クロスフェード）が既定で入った**。`prefers-reduced-motion` は尊重される。オプトアウトの設定は用意されていないので、挙動を変えたいなら upstream に相談する。同じリリースの trailing-slash 308 リダイレクトは Vercel 限定、shallow clone 警告（`BLUME_SHALLOW_GIT_HISTORY`）は `deploy.yml` で `fetch-depth: 0` 済みなので、どちらもこのサイトには効かない
+- 1.5.0（[blume#187](https://github.com/haydenbleasel/blume/pull/187)、こちらから出した PR）で、**`blume audit` の title / description 長が文字数でなく表示桁数（`string-width`）基準になった**。全角は 2 列。日本語サイトが一律 `BLUME_AUDIT_DESCRIPTION_LENGTH` を出す問題は消えたが、このサイトの description は**桁で数えても本当に短い**（下限 110 列に対し 34〜100 列が 56 ページ）ので警告は残る。title も 10 ページが 60 列超（frontmatter は全て 60 列以内で、`- {サイトタイトル}` の 27 列が乗って超えている）。いずれも content 側の課題で、直すなら frontmatter を書き直す
+- 1.5.0（[blume#183](https://github.com/haydenbleasel/blume/pull/183)）で、**サイドバーの表示モードをグループ単位で指定できるようになった**（フォルダの `meta.ts` の `display`、または index ページ frontmatter の `sidebar.display`）。いまは `navigation.sidebar.display: "group"` の全体指定だけを使っている。`/features` のカテゴリだけ `page`（ドリルダウン）にするといった選択肢が増えた。効かない位置に `sidebar.display` を書くと `BLUME_SIDEBAR_DISPLAY_IGNORED` が出る
 - MCP の `search_docs` と Ask AI のグラウンディングも同じ `buildOramaIndex` を使うので、**検索ダイアログだけでなくそちらの日本語検索も同時に直っている**（pagefind への迂回ではダイアログしか直っていなかった）
