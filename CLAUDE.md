@@ -41,6 +41,7 @@
 - 各フォルダの `meta.ts` がグループ名・ページ順を定義。ページ追加時は `meta.ts` の `pages` にも追記する
 - `blume.config.ts` — サイト設定 / `components.ts` — レイアウトオーバーライド
 - `BLUME.md` — Blume の使い方まとめ。**Blume の機能・設定に触るときはまずこれを読む**
+- `BLUME-UPGRADES.md` — Blume の版ごとの変更と、このサイトが踏んだ影響の記録。参考資料なので日々の作業では読まなくてよい。バージョンを上げるときに読む
 
 ## 開発コマンド
 
@@ -67,34 +68,21 @@ npm run doctor   # 診断
 - 機能・商材ページの構成テンプレ: 冒頭に `| 項目 | 内容 |` テーブル（疑うべき法令・確認タイミング）→「なにが問題になるか」→「確認すべきこと」（`- [ ]`）→「こんな仕様が出たらアラート」→「あわせて確認」（関連する `/features/`・`/products/` ページへのリンク）→ `{/* 実務メモ */}`
 - 書籍から内容を持ってくるときは、章単位でなく該当する機能ページに分解して吸収する。書籍内参照（「参照: 1章」等）はサイト内リンクに置き換える
 - **太字 `**` のパース失敗に注意（過去に複数回発生）**: CommonMark の flanking ルール上、閉じ `**` の直前が全角約物（`）` `」` `。` など）で直後に文字が続くと（例: `**過半（4週間以上）**その価格`）、閉じデリミタと認識されず `**` が素のまま出力される。約物を太字の外に出して回避する（`**過半**（4週間以上）その価格`）。逆に開き `**` は直後が `「` `（` などの約物でも、直前が文字でなければ問題ない。理屈で判定せず、ビルド後に `grep -rl '\*\*' dist --include='*.html'` で機械的に検出するのが確実（正常ならヒット0件）
-- **見出しの末尾に角かっこを置かない**: 1.6.0 以降 `## 見出し [#id]` `[toc]` `[!toc]` `{#id}` がアンカー・目次のマーカーとして常時パースされる。リテラルで出したいならインラインコードで包む（詳細は「現状の注意点」）
+- **見出しの末尾に角かっこを置かない**: `## 見出し [#id]` `[toc]` `[!toc]` `{#id}` がアンカー・目次のマーカーとして常時パースされる。法令の条項番号などを見出し末尾に角かっこで書くと食われる。リテラルで出したいならインラインコードで包む
 - 書籍ソース側（`vivliostyle-legal-tech-book-2026`）のファイルは読み取り専用。編集しない
 
 ## 現状の注意点
 
-- blume は **1.6.0 以降**（`^1.6.0`）。1.0.4 時代にあった patch-package のパッチは全廃した:
-  - OG 画像の日本語豆腐対策 → upstream の `seo.og.fonts` で対応（[blume#62](https://github.com/haydenbleasel/blume/issues/62) の解決）。`blume.config.ts` で Noto Sans JP を指定しており、**ビルド時に Google Fonts から取得**する（ローカルフォント `assets/og-fonts/` は削除済み）。OG カードの描画は fontWeight 400/600 を使う
-  - 日付表示の `yyyy/mm/dd` パッチ → 廃止。1.1.0 で changelog タイムラインもロケール準拠になったため、ja の標準（`2026年7月19日` 形式）をそのまま使う
+- blume は **2.0.3 以降**（`^2.0.3`）。**版ごとに何が変わり、何を確認したかは BLUME-UPGRADES.md に分けてある**。バージョンを上げるとき、検索やビルド出力に違和感が出たときはそちらを読む
 - `.blume/` はビルドのキャッシュを持つ。sitemap など生成物が古いまま出ることがあるので、出力を検証するときは `rm -rf .blume dist` してからビルドする（CI は常にクリーン）
-- **検索は既定の orama**（`blume.config.ts` の `search` は `popular` だけを持つ）。1.2.0 までは orama のトークナイザが english 固定で日本語がヒット0件になるため pagefind に逃していた。1.2.1（[blume#125](https://github.com/haydenbleasel/blume/issues/125)）で分かち書きが入り、さらに **1.3.0（[blume#132](https://github.com/haydenbleasel/blume/pull/132)、こちらから出した PR）で CJK の複合語ランキングが直った**ため既定に戻した。`scripts/reindex-search.mjs` と pagefind の devDependency は削除済み。索引は `dist/blume-search.json` の1ファイルで、**dev でも検索が効く**
-- 1.3.0 以降、日本語・中国語の索引は**漢字・かな・カナの連なりを文字bigram に切って**張られる（「資金決済法」→ 資金/金決/決済/済法）。辞書分割だけだと語の隣接情報が失われ、各法令を浅く言及するトップページが1位に来ていた。クエリ側は**全 bigram を含むページを優先し、0件なら OR に落とす**。この仕様から来る制約が2つあり、どちらも仕様として受け入れている:
+- **検索は既定の orama**（`blume.config.ts` の `search` は `popular` だけを持つ）。索引は `dist/blume-search.json` の1ファイルで、**dev でも検索が効く**。MCP の `search_docs` とアシスタントのグラウンディングも同じ索引を使う
+- 日本語・中国語の索引は**漢字・かな・カナの連なりを文字 bigram に切って**張られる（「資金決済法」→ 資金/金決/決済/済法）。クエリ側は**全 bigram を含むページを優先し、0件なら OR に落とす**。この仕様から来る制約が2つあり、どちらも仕様として受け入れている:
   - **1文字クエリは、その文字が bigram の先頭に立つページにしか届かない**。「景品表示法。」の末尾の 法 は 示法 の中にしかないので `法` では引けない（Lucene の CJK アナライザと同じ性質）
   - **Latin の複数語クエリにも strict パスが効く**。日本語サイトの索引に対して英単語を複数並べると、全語を含むページが優先される（0件なら OR に落ちる）
-- 1.4.3（[blume#178](https://github.com/haydenbleasel/blume/pull/178)、こちらから出した PR）で、**語の内側に残る句読点が索引語から外れた**。`Intl.Segmenter` は UAX #29 に従って接続用句読点・書式文字を語の内側に保持するので、`スネーク_ケース` や `robots.txt` が丸ごと1トークンになり、句読点を打ち直さないと引けなかった。このサイトでは DB・経理ページの `balance_after` `idempotency_key` `expires_at` などが `balance` / `after` に分かれ、**部分語でも引けるようになっている**。ただし**数字に挟まれた `.` `,` と語中のアポストロフィは分割されない**（`1,000` `1.0.3` `don't` は1トークンのまま）。断片が増えてノイズになるため意図的にそうしている。索引前に NFC 正規化も入った
-  - 自分が最初に出した版は「文字でも数字でもないもの」で分割していて、**タイの母音・声調記号（`\p{M}`）まで落として語を壊していた**（`เปลี่ยน` → `เปล` / `ยน`）。索引側もクエリ側も同じ壊れ方をするので既存テストは通ってしまう。作者が追加コミットで `\p{M}` を語の一部に含める形に直してからマージされた。**`\p{L}\p{N}` だけで「語」を定義すると結合文字を使う文字体系が壊れる**、が教訓
-- 1.5.1 で**既定の display フォントが Inter Tight → Inter に変わった**（body と同じ family になり、見出しのトラッキングはテーマ側の `letter-spacing: -0.05em` で出す）。あわせて preload が「above-the-fold で実際に使うウェイトだけ」に絞られ、このサイトでは preload される woff2 が 2 ファイルになった。`theme.fonts` を設定していないので既定に追随している＝**見出しの見た目がわずかに変わる**。Inter Tight に戻すなら slug `inter-tight` を指定する
-- 1.5.1 で**全リンクの prefetch（hover / viewport）が既定で入った**。オプトアウトの設定は用意されていないので、挙動を変えたいなら upstream に相談する。同じリリースの trailing-slash 308 リダイレクトは Vercel 限定、shallow clone 警告（`BLUME_SHALLOW_GIT_HISTORY`）は `deploy.yml` で `fetch-depth: 0` 済みなので、どちらもこのサイトには効かない
-- **ページ遷移は 1.5.2 で Astro の client router（`<ClientRouter />`）に置き換わった**（commit `e2dbf74`。PR を経ない直コミット）。1.5.1 が入れていたクロスドキュメントの `@view-transition` CSS ルールは削除済みで、同一オリジンのリンククリックは**ドキュメントを捨てずに中身を差し替える**方式になった。ネイティブ View Transitions が使える環境ではそれで、それ以外は Astro のフェードにフォールバックし、どちらも `prefers-reduced-motion` を尊重する。副作用として**サイドバーのスクロール位置がページ間で維持される**、検索結果の遷移もルーター経由になる。1.5.3 は**この差し替え時に CSS 未適用のフレームが1〜2枚描かれる問題の修正**（MDX 本文のように head ストリーム後に描画されるコンポーネントの CSS は body に hoist されるが、client router はそれを preload も persist もしていなかった）。実質 1.5.2 と 1.5.3 はセットなので、**1.5.2 だけで止めない**
-- 1.5.2 で**セグメント分割の対象が、こちらが積み上げてきた `ja`/`zh`/`ko`/`th` の言語リストから「Latin 以外の script 全部」に一般化された**（[blume#194](https://github.com/haydenbleasel/blume/pull/194)、kotuke 氏）。言語を列挙する代わりに `Intl.Locale.maximize()` の script で判定する形になり、キリル・ギリシャ・ヘブライ・デーヴァナーガリーが救われた（`sr-Latn` は Orama 既定のまま、`az-Cyrl` はセグメント、と script が実態に一致する）。**この PR は #125 を「ロシア語も日本語と同じ壊れ方をする」という形で出発点に引き、#132・#178 の CJK 挙動には触らないと明示している**ので、bigram 索引もクエリ側の strict→OR フォールバックもこちらが入れたまま残っている。したがって**このサイトの索引の挙動は変わらない**（ビルド後に bigram「資金/金決/決済/済法」と `balance_after` の分割を確認済み）。あわせて**セグメント索引上の Latin 語はダイアクリティカルマークを畳む**ようになった（café ↔ cafe）
-- 1.5.2 にはこのサイトで使っていない機能の追加も多い（OpenAPI / AsyncAPI の Try It プレイグラウンド、`ai.ask.retrieval` の3ノブ、`ai.openInChat` のプロバイダ選択、Ask AI パネルの遷移越え永続化）。使うようになったら BLUME.md 側に足す。**ダークモード favicon** は `icon.svg` の隣に `icon-dark.svg` を置くだけで自動検出される — 将来アイコンを差し替えるときの選択肢
-- 1.6.0 で **`.mdx` が索引時に MDX としてパースされるようになった**（blume#dd1ed31）。効果が2つあり、どちらもこのサイトには得だった:
-  - 各ページ末尾の `{/* 実務メモ: 書籍にない独自の追加情報はこの下に追記していく */}` が索引から消えた。1.5.3 までは全ページの本文にこの文字列が入っていて、「実務」「書籍」あたりで検索すると全ページがヒットしていた
-  - `<Card>` / `<CardGroup>` が Markdown に降ろされ、**カードのタイトルが索引に入るようになった**（トップページの「機能から引く」「商材から引く」など）。同じ降ろし方が `.md` ミラー・llms-full.txt・Ask AI のグラウンディングにも効く
-  - なお `search.indexing.includeCodeBlocks` でコードフェンスも索引に入れられるが、既定の plain text のままにしている
-- 1.6.0 で **見出しのマーカー記法が常時 ON になった**（blume#2fa67b8 / #35b5c6a）。`## 見出し [#custom-id]` でアンカー固定、`[!toc]` で目次から外す、`[toc]` で目次だけに出す、`.md` では `{#id}`（`.mdx` では `\{#id\}`）。**副作用として、見出しの末尾がマーカーの形をした角かっこで終わっているとマーカーとして食われる**。いまの docs には該当箇所なし（`grep -rn '^#\{1,6\} .*[][{}]' docs --include='*.mdx'` でヒット0件）だが、法令の条項番号などを見出し末尾に角かっこで書くときは注意。リテラルで出したいならインラインコードで包む
-- 1.6.0 で「チャットで開く」のプロンプトが UI 辞書（`actions.openInChatPrompt`）から来るようになり、**日本語になった**（それまで英語ハードコード）。あわせて 1.5.2 のクライアントルーター由来の不具合が2つ直っている: 遷移中に `data-theme` が落ちてダークが一瞬ライトになる件、画像ライトボックスが初回遷移後に閉じられなくなる件
-- 1.6.0 の目玉（GraphQL リファレンス、Obsidian vault ソース、`<include>` によるコンテンツ分割、`navigation.actions` / `navigation.cta`、`github.host`）はこのサイトでは未使用。`<include>` は共通の注意書きを部分ファイル化したくなったときの選択肢（`_` 始まりのファイルはもともとルーティング対象外）
-- `blume validate` が `docs/index.mdx` の `/legal-check-helper/index.md` へのリンクを `BLUME_BROKEN_LINK` として1件出す。**1.5.3 でも同じように出る既知の誤検知**で、`dist/index.md` は実際に生成されている（生成物の Markdown ミラーをバリデータがルートとして解決できないだけ）。バージョンを上げたときにこれが「新しいエラー」に見えないよう記録しておく
-- 1.5.0（[blume#187](https://github.com/haydenbleasel/blume/pull/187)、こちらから出した PR）で、**`blume audit` の title / description 長が文字数でなく表示桁数（`string-width`）基準になった**。全角は 2 列。日本語サイトが一律 `BLUME_AUDIT_DESCRIPTION_LENGTH` を出す問題は消えたが、このサイトの description は**桁で数えても本当に短い**（下限 110 列に対し 34〜100 列が 56 ページ）ので警告は残る。title も 10 ページが 60 列超（frontmatter は全て 60 列以内で、`- {サイトタイトル}` の 27 列が乗って超えている）。いずれも content 側の課題で、直すなら frontmatter を書き直す
-- 1.5.0（[blume#183](https://github.com/haydenbleasel/blume/pull/183)）で、**サイドバーの表示モードをグループ単位で指定できるようになった**（フォルダの `meta.ts` の `display`、または index ページ frontmatter の `sidebar.display`）。いまは `navigation.sidebar.display: "group"` の全体指定だけを使っている。`/features` のカテゴリだけ `page`（ドリルダウン）にするといった選択肢が増えた。効かない位置に `sidebar.display` を書くと `BLUME_SIDEBAR_DISPLAY_IGNORED` が出る
-- MCP の `search_docs` と Ask AI のグラウンディングも同じ `buildOramaIndex` を使うので、**検索ダイアログだけでなくそちらの日本語検索も同時に直っている**（pagefind への迂回ではダイアログしか直っていなかった）
+- 語の内側の句読点は索引語から外れる。DB・経理ページの `balance_after` `idempotency_key` `expires_at` などが `balance` / `after` に分かれ、**部分語でも引ける**。ただし**数字に挟まれた `.` `,` と語中のアポストロフィは分割されない**（`1,000` `1.0.3` `don't` は1トークンのまま）
+- OG カードは `seo.og.fonts` で Noto Sans JP を指定しており、**ビルド時に Google Fonts から取得**する（ローカルフォント `assets/og-fonts/` は削除済み）。カードの描画は fontWeight 400/600 を使う
+- **ローカルの `blume dev` / `blume preview` は末尾スラッシュ付き URL を 404 にする**（`/legal-check-helper/features/` が 404、`/legal-check-helper/features` は 200）。Astro の `trailingSlash: "never"` 設定によるもので、スラッシュ無しがページの唯一の住所。サイト内の導線・sitemap・canonical は全てスラッシュ無しなので踏まないが、古いブックマークや手打ちだと出る。**GitHub Pages は静的ファイルとして両形式を解決するのでデプロイ先には影響しない**
+- **免責フッターの全ページ確認はサイドバー断片を除いて数える**。`dist` には `blume-nav/current/default/g0`〜`g9` という折りたたみサイドバーのプリレンダ断片が10本あり、`grep -rl '免責' dist --include='index.html'` の分母が 75 になる（実ページ65 + 断片10）。断片に免責が無いのは正常なので `grep -v 'blume-nav/'` で除く
+- `blume validate` が `docs/index.mdx` の `/legal-check-helper/index.md` へのリンクを `BLUME_BROKEN_LINK` として1件出す。**1.5.3 / 1.6.0 / 2.0.3 のいずれでも同じように出る既知の誤検知**で、`dist/index.md` は実際に生成されている（生成物の Markdown ミラーをバリデータがルートとして解決できないだけ）。バージョンを上げたときにこれが「新しいエラー」に見えないよう記録しておく
+- `blume audit` の title / description 長の警告は**content 側の課題**。description は下限 110 列に対し 34〜100 列が 56 ページ、title も 10 ページが 60 列超（frontmatter は全て 60 列以内で、`- {サイトタイトル}` の 27 列が乗って超えている）。長さは全角を 2 列と数える表示桁数基準。直すなら frontmatter を書き直す
+- サイドバーの表示モードは**グループ単位でも指定できる**（フォルダの `meta.ts` の `display`、または index ページ frontmatter の `sidebar.display`）。いまは `navigation.sidebar.display: "group"` の全体指定だけを使っている。`/features` のカテゴリだけ `page`（ドリルダウン）にするといった選択肢もある。効かない位置に `sidebar.display` を書くと `BLUME_SIDEBAR_DISPLAY_IGNORED` が出る

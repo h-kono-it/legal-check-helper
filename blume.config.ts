@@ -72,5 +72,7 @@ export default defineConfig({
   // 「このページはいつ時点の情報か」を読者が判断できるようにする。
   // CI では actions/checkout の fetch-depth: 0 が前提（浅いクローンだと全ページが
   // デプロイ日になってしまう）。deploy.yml 側に設定済み。
-  lastModified: true,
+  // 2.0 で真偽値・オブジェクト形式が廃止され、"git" / "frontmatter" / false の
+  // フラット値のみになった（1.x の `true` がこの "git" に相当する）
+  lastModified: "git",
 });

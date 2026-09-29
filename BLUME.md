@@ -4,7 +4,8 @@
 「Fast, AI-ready, zero-config」がコンセプトで、`docs/` に Markdown を置くだけでナビゲーション・検索・テーマ込みのドキュメントサイトが立ち上がる。
 
 - 必要要件: **Node.js 22.12 以上**
-- このプロジェクトでの導入済みバージョン: `blume ^1.6.0`（`package.json` 参照）
+- このプロジェクトでの導入済みバージョン: `blume ^2.0.3`（`package.json` 参照）
+- **2.0 で検索・デプロイ・コンテンツソース・API リファレンス・アナリティクス・アシスタントの設定が「`blume/*` サブパスから import する adapter」形式に変わった**。1.x のオブジェクト記法は原則エラーになる（このプロジェクトは該当機能をほぼ使っていないため影響は軽微。版ごとの経緯は BLUME-UPGRADES.md）
 
 ## CLI コマンド
 
@@ -13,6 +14,11 @@
 | `npm run dev` (`blume dev`) | ホットリロード付き開発サーバーを起動 |
 | `npm run build` (`blume build`) | 静的 HTML と検索インデックスを `dist/` に出力 |
 | `npm run doctor` (`blume doctor`) | 設定・コンテンツの診断 |
+| `npx blume validate` | 内部リンク・アンカー・アセットの検証 |
+| `npx blume audit` | ビルド済み `dist/` の SEO・サイト健全性の監査 |
+| `npx blume@latest upgrade` | メジャー更新。`package.json` を上げてインストールし、残る設定変更を行番号付きで列挙する |
+
+2.0 以降、各コマンドは知らないフラグを黙って無視せずエラーにする（`--isolatd` のような打ち間違いが「意図したであろうフラグ」の提案付きで落ちる）。
 
 ## ディレクトリ構造とルーティング
 
@@ -118,6 +124,8 @@ MDX ページでは組み込みコンポーネントを import なしでその�
 
 ```typescript
 import { defineConfig } from "blume";
+// 2.0 以降、複数ソース・検索プロバイダー・ホスト指定は adapter を import して使う
+import { filesystem, githubReleases } from "blume/sources";
 
 export default defineConfig({
   title: "サイト名",
@@ -125,22 +133,26 @@ export default defineConfig({
   logo: "/logo.svg",
   banner: "お知らせバー",
   content: {
-    root: "docs",                 // 単一ソースならこれだけでもよい
-    sources: [                    // 複数ソースの統合も可能
-      { type: "filesystem", root: "docs" },
-      { type: "github-releases", owner: "org", repo: "repo", prefix: "changelog" },
-    ],
+    root: "docs",                 // 単一ソースならこれだけでもよい（zero-config 短縮形）
+    sources: [                    // 複数ソースを統合する場合は adapter の配列にする
+      filesystem({ root: "docs" }),   // root/include/exclude は adapter 側へ移す
+      githubReleases({ owner: "org", repo: "repo", prefix: "changelog" }),
+    ],                            // ※ root と sources は併用できない
   },
   github: { owner: "org", repo: "repo", branch: "main" }, // 「Edit this page」等
   theme: { /* アクセントカラー・角丸・フォント */ },
   navigation: { /* サイドバー・タブ */ },
-  search: { /* 検索プロバイダー */ },
-  ai: { /* llms.txt・Ask AI */ },
+  search: { /* 既定は orama。変える場合は blume/search の adapter を渡す */ },
+  reference: [ /* OpenAPI・GraphQL 等は blume/reference の adapter を並べる */ ],
+  analytics: [ /* blume/analytics の adapter を並べる */ ],
+  ai: { /* assistant（旧 Ask AI）・openInChat */ },
+  agents: { /* llms.txt・MCP・catalog などの機械可読な面。1.x の ai.* から移動 */ },
   seo: { /* OG 画像・RSS・サイトマップ */ },
+  lastModified: "git",            // false / "git" / "frontmatter" のフラット値
   deployment: {
     site: "https://example.com",  // 絶対 URL（sitemap/OG/RSS に必要）
     base: "/docs",                // サブディレクトリ配信時
-  },
+  },                              // ホスト指定が要るときは blume/deploy の adapter に置き換える
 });
 ```
 
@@ -148,7 +160,7 @@ export default defineConfig({
 
 - `blume build` → `dist/` を静的ホスティングへ（Vercel / Netlify / Cloudflare Pages / GitHub Pages / S3 など）
 - ビルドコマンド `blume build`、出力ディレクトリ `dist`、Node 22.12+ を指定する
-- Ask AI などの動的機能を使う場合のみ `deployment: { output: "server", adapter: "vercel" }`
+- アシスタント（旧 Ask AI）などの動的機能を使う場合のみ、`blume/deploy` の adapter でホストを名指しする（`deployment: vercel()`。2.0 で `deployment.output` / `deployment.adapter` と `blume build --output/--adapter/--base` は廃止）
 
 ## 公式ドキュメントの主要ページ
 
