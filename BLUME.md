@@ -3,8 +3,8 @@
 [Blume](https://useblume.dev/) は Astro + Vite ベースの Markdown ファーストな静的サイトジェネレーター。
 「Fast, AI-ready, zero-config」がコンセプトで、`docs/` に Markdown を置くだけでナビゲーション・検索・テーマ込みのドキュメントサイトが立ち上がる。
 
-- 必要要件: **Node.js 22.12 以上**
-- このプロジェクトでの導入済みバージョン: `blume ^2.0.3`（`package.json` 参照）
+- 必要要件: **Node.js 22.19 以上**（2.2.0 で 22.12 から引き上げ。`.node-version` は 22.23.1）
+- このプロジェクトでの導入済みバージョン: `blume ^2.2.0`（`package.json` 参照）
 - **2.0 で検索・デプロイ・コンテンツソース・API リファレンス・アナリティクス・アシスタントの設定が「`blume/*` サブパスから import する adapter」形式に変わった**。1.x のオブジェクト記法は原則エラーになる（このプロジェクトは該当機能をほぼ使っていないため影響は軽微。版ごとの経緯は BLUME-UPGRADES.md）
 
 ## CLI コマンド
@@ -159,7 +159,7 @@ export default defineConfig({
 ## デプロイ
 
 - `blume build` → `dist/` を静的ホスティングへ（Vercel / Netlify / Cloudflare Pages / GitHub Pages / S3 など）
-- ビルドコマンド `blume build`、出力ディレクトリ `dist`、Node 22.12+ を指定する
+- ビルドコマンド `blume build`、出力ディレクトリ `dist`、Node 22.19+ を指定する
 - アシスタント（旧 Ask AI）などの動的機能を使う場合のみ、`blume/deploy` の adapter でホストを名指しする（`deployment: vercel()`。2.0 で `deployment.output` / `deployment.adapter` と `blume build --output/--adapter/--base` は廃止）
 
 ## 公式ドキュメントの主要ページ

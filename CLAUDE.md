@@ -34,7 +34,7 @@
 - `docs/30-checklist/` — フェーズ別チェックリスト（→ `/checklist`）
 - `docs/90-changelog/` — 更新履歴。1エントリ=1ファイルで frontmatter に `type: changelog` / `date` / `changelog.category` を付ける。ヘッダーのタブ（`navigation.tabs`）から辿る。ページの追加や大きな更新をしたらエントリを1本足す
   - `/changelog` は `index.mdx` + `components/ChangelogIndex.astro` のタイトル一覧。**index.mdx を置いた時点で Blume 標準の全文タイムラインは生成されない**（意図的にそうしている。リファレンスサイトなので更新履歴も一覧で見渡す形に寄せた）。一覧の収集・並び順・日付書式は `ChangelogIndex.astro` が自前で持つので、表示を変えるときはそこを触る
-  - ヘッダータブのリンク先は `blume.config.ts` の `tabs` で `href: "/changelog"` を明示している（1.2.0 の [blume#122](https://github.com/haydenbleasel/blume/pull/122)）。`path` だけだと `resolveTabHref`（`core/navigation.ts`）がナビツリーにタブの `path` と一致するノードを見つけられないときセクション先頭ページにフォールバックするため、index.mdx の有無にタブの挙動が依存してしまう。`href` はその依存を切るためのもの
+  - ヘッダータブは `path: "/changelog"` だけを指定する。以前は `path` だけだとセクション先頭ページ（＝最新エントリ）へフォールバックする場合があったため `href` も明示していたが、2.0 で `/changelog` タブが `href` 無しでも一覧を開くよう直ったので外した
   - RSS（`/changelog/rss.xml`）は `type: changelog` の frontmatter から別系統で生成されるので、この差し替えの影響を受けない
 - 数字プレフィックスはサイドバー並び順の制御用。URL からは剥がれる（ネストしたフォルダでも同様。検証済み）
 - 機能ページをカテゴリ間で移動すると URL が変わる。公開後に移動するなら、被リンクの有無を見て `blume.config.ts` の `redirects` を検討する。blume 1.1.0 以降は `to` に `deployment.base` が自動で付くため base は書かない（[blume#71](https://github.com/haydenbleasel/blume/pull/71)）
@@ -51,7 +51,7 @@ npm run build    # 静的ビルド → dist/
 npm run doctor   # 診断
 ```
 
-依存は `npm install` 済み。Node.js 22.12 以上。
+依存は `npm install` 済み。Node.js 22.19 以上（`.node-version` は 22.23.1）。
 
 ## Blume の要点（詳細は BLUME.md）
 
@@ -73,14 +73,14 @@ npm run doctor   # 診断
 
 ## 現状の注意点
 
-- blume は **2.0.3 以降**（`^2.0.3`）。**版ごとに何が変わり、何を確認したかは BLUME-UPGRADES.md に分けてある**。バージョンを上げるとき、検索やビルド出力に違和感が出たときはそちらを読む
+- blume は **2.2.0 以降**（`^2.2.0`）。**版ごとに何が変わり、何を確認したかは BLUME-UPGRADES.md に分けてある**。バージョンを上げるとき、検索やビルド出力に違和感が出たときはそちらを読む
 - `.blume/` はビルドのキャッシュを持つ。sitemap など生成物が古いまま出ることがあるので、出力を検証するときは `rm -rf .blume dist` してからビルドする（CI は常にクリーン）
 - **検索は既定の orama**（`blume.config.ts` の `search` は `popular` だけを持つ）。索引は `dist/blume-search.json` の1ファイルで、**dev でも検索が効く**。MCP の `search_docs` とアシスタントのグラウンディングも同じ索引を使う
 - 日本語・中国語の索引は**漢字・かな・カナの連なりを文字 bigram に切って**張られる（「資金決済法」→ 資金/金決/決済/済法）。クエリ側は**全 bigram を含むページを優先し、0件なら OR に落とす**。この仕様から来る制約が2つあり、どちらも仕様として受け入れている:
   - **1文字クエリは、その文字が bigram の先頭に立つページにしか届かない**。「景品表示法。」の末尾の 法 は 示法 の中にしかないので `法` では引けない（Lucene の CJK アナライザと同じ性質）
   - **Latin の複数語クエリにも strict パスが効く**。日本語サイトの索引に対して英単語を複数並べると、全語を含むページが優先される（0件なら OR に落ちる）
 - 語の内側の句読点は索引語から外れる。DB・経理ページの `balance_after` `idempotency_key` `expires_at` などが `balance` / `after` に分かれ、**部分語でも引ける**。ただし**数字に挟まれた `.` `,` と語中のアポストロフィは分割されない**（`1,000` `1.0.3` `don't` は1トークンのまま）
-- OG カードは `seo.og.fonts` で Noto Sans JP を指定しており、**ビルド時に Google Fonts から取得**する（ローカルフォント `assets/og-fonts/` は削除済み）。カードの描画は fontWeight 400/600 を使う
+- OG カードの日本語フォントは**設定不要**。2.0 で既定のカードフォントスタックに各 script の Noto フォールバックが入ったため、`seo.og.fonts` の明示指定は外してある（ローカルフォント `assets/og-fonts/` も削除済み）。ビルド時の Google Fonts 取得もないので、ネットワークに依存しない
 - **ローカルの `blume dev` / `blume preview` は末尾スラッシュ付き URL を 404 にする**（`/legal-check-helper/features/` が 404、`/legal-check-helper/features` は 200）。Astro の `trailingSlash: "never"` 設定によるもので、スラッシュ無しがページの唯一の住所。サイト内の導線・sitemap・canonical は全てスラッシュ無しなので踏まないが、古いブックマークや手打ちだと出る。**GitHub Pages は静的ファイルとして両形式を解決するのでデプロイ先には影響しない**
 - **免責フッターの全ページ確認はサイドバー断片を除いて数える**。`dist` には `blume-nav/current/default/g0`〜`g9` という折りたたみサイドバーのプリレンダ断片が10本あり、`grep -rl '免責' dist --include='index.html'` の分母が 75 になる（実ページ65 + 断片10）。断片に免責が無いのは正常なので `grep -v 'blume-nav/'` で除く
 - `blume validate` が `docs/index.mdx` の `/legal-check-helper/index.md` へのリンクを `BLUME_BROKEN_LINK` として1件出す。**1.5.3 / 1.6.0 / 2.0.3 のいずれでも同じように出る既知の誤検知**で、`dist/index.md` は実際に生成されている（生成物の Markdown ミラーをバリデータがルートとして解決できないだけ）。バージョンを上げたときにこれが「新しいエラー」に見えないよう記録しておく

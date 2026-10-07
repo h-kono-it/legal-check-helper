@@ -41,22 +41,18 @@ export default defineConfig({
     // 更新履歴はサイドバーではなくヘッダーのタブから辿る（本家 useblume.dev と同じ構成）。
     // タブを設定するとナビツリーがタブごとに分割され、changelog エントリは
     // ドキュメント側のサイドバーに現れなくなる
-    // href は 1.2.0 で入ったリンク先の明示指定（blume#122）。path だけだと
-    // resolveTabHref がナビツリーに /changelog というノードを見つけられない場合に
-    // セクション先頭ページ（＝最新エントリ）へフォールバックする。いまは
-    // docs/90-changelog/index.mdx があるので結果は同じだが、その暗黙の依存を切っておく
     tabs: [
       { label: "ドキュメント", path: "/" },
-      { label: "更新履歴", path: "/changelog", href: "/changelog" },
+      { label: "更新履歴", path: "/changelog" },
     ],
   },
   seo: {
     x: { handle: "@hk_it7", creator: "@hk_it7" },
     og: {
       enabled: true, // or false to opt out even with a site set
-      // OG カードの日本語豆腐対策（blume#62 → 1.1.0 の seo.og.fonts で解決）。
-      // ビルド時に Google Fonts から取得される。カードの本文は fontWeight 400/600 を使う
-      fonts: [{ name: "Noto Sans JP", weight: [400, 600] }],
+      // 日本語の豆腐対策で以前は fonts に Noto Sans JP を明示していたが、2.0 で
+      // 既定のカードフォントスタックに各 script の Noto フォールバックが入ったため
+      // 不要になった。指定を外したぶん、ビルド時の Google Fonts 取得もなくなる
     },
   },
   deployment: {
